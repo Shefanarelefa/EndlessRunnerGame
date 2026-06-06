@@ -2,20 +2,12 @@ using UnityEngine;
 
 public class Obstacle : MonoBehaviour
 {
-    private bool triggered = false;
-
-    void OnTriggerEnter(Collider other)
+    // Simplified to allow CarMovement handles to manage collision parsing cleanly
+    private void Start()
     {
-        if (triggered) return;
-
-        if (other.CompareTag("Player"))
+        if (!gameObject.CompareTag("Obstacle"))
         {
-            triggered = true;
-
-            if (WorldManager.instance != null)
-            {
-                WorldManager.instance.GameOver();
-            }
+            gameObject.tag = "Obstacle";
         }
     }
 }

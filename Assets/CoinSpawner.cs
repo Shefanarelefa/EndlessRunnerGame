@@ -1,59 +1,84 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class CoinSpawner : MonoBehaviour
 {
     public GameObject coinPrefab;
     public Transform player;
 
-    public float spawnAhead = 25f;
-    public float spacingZ = 10f;
+    public float spawnDistance = 30f;
+    public float spacingZ = 8f;
+
+    public int minCoins = 2;
+    public int maxCoins = 4;
 
     private float[] lanes = new float[] { -4f, -2f, 0f, 2f, 4f };
+
     private float nextZ;
 
-void Start()
-{
-    if (player == null)
+    void Start()
     {
-        Debug.LogError("PLAYER NOT ASSIGNED");
-        return;
+        nextZ = Camera.main.transform.position.z + spawnDistance;
     }
 
-    // IMPORTANT: start closer, not far ahead
-    nextZ = player.position.z + 10f;
-
-    Debug.Log("Coin system reset. nextZ = " + nextZ);
-}
-
- void Update()
-{
-    if (player == null) return;
-
-    float targetZ = player.position.z + spawnAhead;
-
-    if (targetZ > nextZ)
+    void Update()
     {
-        SpawnRow(nextZ);
-        nextZ += spacingZ;
-    }
-}
+        float camZ = Camera.main.transform.position.z;
 
-   void SpawnRow(float z)
-{
-    if (coinPrefab == null)
-    {
-        Debug.LogError("COIN PREFAB IS NOT ASSIGNED!");
-        return;
+        if (camZ + spawnDistance > nextZ)
+        {
+            SpawnCoinRow(nextZ);
+            nextZ += spacingZ;
+        }
     }
 
-    int coins = Random.Range(0, 3);
-
-    for (int i = 0; i < coins; i++)
+    void SpawnCoinRow(float z)
     {
-        int lane = Random.Range(0, lanes.Length);
+        int coinCount = Random.Range(minCoins, maxCoins + 1);
 
-        Vector3 pos = new Vector3(lanes[lane], 0.5f, z);
-        Instantiate(coinPrefab, pos, Quaternion.identity);
+        List<int> safeLanes = GetSafeLanes(z);
+
+        for (int i = 0; i < coinCount; i++)
+        {
+            if (safeLanes.Count == 0)
+                return;
+
+            int laneIndex = Random.Range(0, safeLanes.Count);
+            int lane = safeLanes[laneIndex];
+
+            float x = lanes[lane];
+
+            Vector3 pos = new Vector3(x, 0.5f, z);
+            Instantiate(coinPrefab, pos, Quaternion.identity);
+        }
     }
-}
+
+    List<int> GetSafeLanes(float z)
+    {
+        List<int> safe = new List<int>();
+
+        for (int i = 0; i < lanes.Length; i++)
+        {
+            if (!IsLaneBlocked(lanes[i], z))
+            {
+                safe.Add(i);
+            }
+        }
+
+        return safe;
+    }
+
+    bool IsLaneBlocked(float x, float z)
+    {
+        // simple overlap check
+        Collider[] hits = Physics.OverlapSphere(new Vector3(x, 0.5f, z), 0.5f);
+
+        foreach (var hit in hits)
+        {
+            if (hit.CompareTag("Obstacle"))
+                return true;
+        }
+
+        return false;
+    }
 }

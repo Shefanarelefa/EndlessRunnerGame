@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class Coin : MonoBehaviour
 {
@@ -15,7 +16,6 @@ public class Coin : MonoBehaviour
 
     void Update()
     {
-        // Continuous spin
         transform.Rotate(0f, rotateSpeed * Time.deltaTime, 0f);
     }
 
@@ -27,20 +27,23 @@ public class Coin : MonoBehaviour
         {
             collected = true;
 
-            // Add coin to manager
-            CoinManager.instance.AddCoin(coinValue);
+            // Send coin data to counter
+            if (CoinManager.instance != null)
+            {
+                CoinManager.instance.AddCoin(coinValue);
+                
+                // NEW: Tell manager to play sound and spawn sparks right here!
+                CoinManager.instance.PlayCoinEffects(transform.position);
+            }
 
-            // Visual feedback (pop effect)
             StartCoroutine(CollectEffect());
         }
     }
 
-    System.Collections.IEnumerator CollectEffect()
+    IEnumerator CollectEffect()
     {
-        // instantly stop interaction
         GetComponent<Collider>().enabled = false;
 
-        // shrink effect (feel feedback)
         float t = 0f;
         float duration = 0.1f;
 

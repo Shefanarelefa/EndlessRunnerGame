@@ -3,7 +3,6 @@ using UnityEngine;
 public class ObstacleSpawner : MonoBehaviour
 {
     public GameObject obstaclePrefab;
-
     public Transform player;
 
     public float spawnDistance = 30f;
@@ -16,7 +15,7 @@ public class ObstacleSpawner : MonoBehaviour
 
     void Start()
     {
-        nextSpawnZ = player.position.z + spawnDistance;
+        nextSpawnZ = Camera.main.transform.position.z + spawnDistance;
 
         for (int i = 0; i < rowsAhead; i++)
         {
@@ -26,7 +25,9 @@ public class ObstacleSpawner : MonoBehaviour
 
     void Update()
     {
-        if (player.position.z + spawnDistance > nextSpawnZ)
+        float camZ = Camera.main.transform.position.z;
+
+        if (camZ + spawnDistance > nextSpawnZ)
         {
             SpawnRow(nextSpawnZ);
             nextSpawnZ += spacingZ;

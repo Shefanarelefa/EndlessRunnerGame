@@ -1,0 +1,12 @@
+{
+    "asset": "9c8c50e08170f44a692698a5a4bb78b5",
+    "fileName": "019e9a6d-af7a-7e62-bedd-050d1554ab95_Preview.png",
+    "prompt": "Can you generate a desert based terrain.Should contain dunes,cactues,skulls of animals,broken cars,palm trees with an oasis.",
+    "negativePrompt": "",
+    "model": "gemini-3.1-flash-texture",
+    "modelName": "Gemini 3.1 Nano Banana 2",
+    "customSeed": 568426721,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation"
+}

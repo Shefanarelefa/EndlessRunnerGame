@@ -4,22 +4,24 @@ using UnityEngine.SceneManagement;
 
 public class CarMovement : MonoBehaviour
 {
+    [Header("Movement")]
     public float forwardSpeed = 10f;
-    public float speedIncrease = 0.5f;
     public float maxSpeed = 25f;
-
+    public float speedIncrease = 0.5f;
     public float laneDistance = 2f;
 
-    private int currentLane = 2;
-
+    [Header("UI")]
     public TextMeshProUGUI scoreText;
     public GameObject gameOverText;
     public GameObject restartText;
 
+    private int currentLane = 2;
     private int score = 0;
     private float scoreTimer = 0f;
-
     private bool isGameOver = false;
+
+    [Header("PowerUps")]
+    public bool hasShield = false;
 
     void Update()
     {
@@ -27,12 +29,19 @@ public class CarMovement : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.R))
             {
+                Time.timeScale = 1f;
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
             return;
         }
 
-        // lane input
+        HandleInput();
+        HandleForward();
+        HandleScore();
+    }
+
+    void HandleInput()
+    {
         if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
             currentLane--;
 
@@ -41,7 +50,23 @@ public class CarMovement : MonoBehaviour
 
         currentLane = Mathf.Clamp(currentLane, 0, 4);
 
-        // SCORE
+        float targetX = (currentLane - 2) * laneDistance;
+
+        Vector3 pos = transform.position;
+        pos.x = Mathf.Lerp(transform.position.x, targetX, 15f * Time.deltaTime);
+        transform.position = pos;
+    }
+
+    void HandleForward()
+    {
+        transform.position += Vector3.forward * forwardSpeed * Time.deltaTime;
+
+        if (forwardSpeed < maxSpeed)
+            forwardSpeed += speedIncrease * Time.deltaTime;
+    }
+
+    void HandleScore()
+    {
         scoreTimer += Time.deltaTime;
 
         if (scoreTimer >= 1f)
@@ -52,65 +77,64 @@ public class CarMovement : MonoBehaviour
             if (scoreText != null)
                 scoreText.text = "Score: " + score;
         }
+    }
 
-        // SPEED INCREASE (NEW)
-        if (forwardSpeed < maxSpeed)
+    public void ActivateShield()
+    {
+        hasShield = true;
+        Debug.Log("🛡️ SHIELD ON");
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (isGameOver) return;
+
+        if (collision.gameObject.CompareTag("Obstacle"))
         {
-            forwardSpeed += speedIncrease * Time.deltaTime;
+            if (hasShield)
+            {
+                hasShield = false;
+                Destroy(collision.gameObject);
+                Debug.Log("🛡️ SHIELD CONSUMED!");
+                return;
+            }
+
+            TriggerGameOver();
         }
     }
 
-    void FixedUpdate()
+    private void OnTriggerEnter(Collider other)
     {
         if (isGameOver) return;
 
-        // forward movement
-        transform.position += Vector3.forward * forwardSpeed * Time.fixedDeltaTime;
+        if (other.CompareTag("Obstacle"))
+        {
+            if (hasShield)
+            {
+                hasShield = false;
+                Destroy(other.gameObject);
+                Debug.Log("🛡️ SHIELD CONSUMED!");
+                return;
+            }
 
-        // lane movement
-        float targetX = (currentLane - 2) * laneDistance;
-
-        Vector3 pos = transform.position;
-        pos.x = targetX;
-
-        transform.position = Vector3.Lerp(transform.position, pos, 0.25f);
+            TriggerGameOver();
+        }
     }
 
-void OnCollisionEnter(Collision collision)
-{
-    if (collision.gameObject.CompareTag("Obstacle"))
+    void TriggerGameOver()
     {
-        if (isGameOver) return;
-
         isGameOver = true;
-
         forwardSpeed = 0f;
+        Debug.Log("💀 GAME OVER CALLED");
 
-        ObstacleSpawner spawner = FindObjectOfType<ObstacleSpawner>();
-        if (spawner != null)
-            spawner.StopSpawning();
-
-        StartCoroutine(GameOverRoutine());
+        if (WorldManager.instance != null)
+        {
+            WorldManager.instance.GameOver();
+        }
+        else
+        {
+            if (gameOverText != null) gameOverText.SetActive(true);
+            if (restartText != null) restartText.SetActive(true);
+        }
     }
-}
-
-System.Collections.IEnumerator GameOverRoutine()
-{
-    yield return new WaitForSeconds(0.4f);
-
-    if (gameOverText != null)
-        gameOverText.SetActive(true);
-
-    if (restartText != null)
-        restartText.SetActive(true);
-}
-
-void ShowGameOverUI()
-{
-    if (gameOverText != null)
-        gameOverText.SetActive(true);
-
-    if (restartText != null)
-        restartText.SetActive(true);
-}
 }

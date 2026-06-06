@@ -1,0 +1,12 @@
+{
+    "asset": "cb1b3563d3837304a9855da8536b8020",
+    "fileName": "019e9a43-4dbf-7f0a-ad57-d2df628c1bea_Preview.png",
+    "prompt": "Cactus like color",
+    "negativePrompt": "",
+    "model": "gemini-3.1-flash-texture",
+    "modelName": "Gemini 3.1 Nano Banana 2",
+    "customSeed": 1258163339,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation"
+}
